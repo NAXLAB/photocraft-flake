@@ -19,15 +19,15 @@
     "photocraft-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1791327950,
-        "narHash": "sha256-4uIESy5QkwPIzuXHT0mifLuvCDz4dKGyUIsT58WCRSE=",
-        "owner": "openhausfun",
+        "lastModified": 1791518055,
+        "narHash": "sha256-K4Ph1RweNRjvJpqJapbT1TmEu0KrxSvH2DD96aGeBi0=",
+        "owner": "storytold",
         "repo": "photocraft",
-        "rev": "67808f5abb3ce1a71b10d04b889c6eac4db43ba7",
+        "rev": "3e8d54896d5933a1a0ed8d90ea7aacdf03dec7b3",
         "type": "github"
       },
       "original": {
-        "owner": "openhausfun",
+        "owner": "storytold",
         "repo": "photocraft",
         "type": "github"
       }
