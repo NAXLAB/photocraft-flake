@@ -2,8 +2,8 @@
   lib,
   stdenv,
   rustPlatform,
-  fetchFromGitHub,
   pkg-config,
+  makeWrapper,
   nasm,
   libxkbcommon,
   wayland,
@@ -13,25 +13,28 @@
   libxi,
   vulkan-loader,
   libGL,
+  dbus,
+  # The upstream source tree, supplied by the flake (the `photocraft-src` input).
+  src,
 }:
 
+let
+  # Everything below is derived from the source, so updating the flake input needs no edits here.
+  workspaceVersion = (builtins.fromTOML (builtins.readFile "${src}/Cargo.toml")).workspace.package.version;
+  # Flake inputs expose lastModifiedDate as YYYYMMDDHHMMSS.
+  d = src.lastModifiedDate or "19700101000000";
+  date = "${builtins.substring 0 4 d}-${builtins.substring 4 2 d}-${builtins.substring 6 2 d}";
+in
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "photocraft";
-  # Workspace version from Cargo.toml; upstream publishes no tags on this repo, so the
-  # pinned commit date is appended.
-  version = "0.2.0-unstable-2026-10-06";
+  # Upstream publishes no tags on this repo, so the commit date marks the snapshot.
+  version = "${workspaceVersion}-unstable-${date}";
 
-  src = fetchFromGitHub {
-    owner = "openhausfun";
-    repo = "photocraft";
-    rev = "67808f5abb3ce1a71b10d04b889c6eac4db43ba7";
-    hash = "sha256-4uIESy5QkwPIzuXHT0mifLuvCDz4dKGyUIsT58WCRSE=";
-  };
+  inherit src;
 
-  # Every dependency in Cargo.lock comes from crates.io (no git sources), so no
-  # outputHashes are needed. Reading the lockfile out of `src` is import-from-derivation;
-  # swap this for `cargoHash = "...";` if you ever want to upstream the package to nixpkgs.
-  cargoLock.lockFile = "${finalAttrs.src}/Cargo.lock";
+  # While Cargo.lock has only crates.io sources, no hashes ever need updating. If upstream
+  # adds a git dependency, Nix will error and ask for an `outputHashes` entry for it.
+  cargoLock.lockFile = "${src}/Cargo.lock";
 
   # The workspace has 24 crates plus xtask and a wasm app; build only the two binaries
   # upstream ships on Linux (see packaging/linux/package.sh).
@@ -44,6 +47,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
 
   nativeBuildInputs = [
     pkg-config
+    makeWrapper
   ]
   # rav1e (AVIF encoding) uses nasm for its x86_64 assembly kernels.
   ++ lib.optionals stdenv.hostPlatform.isx86_64 [ nasm ];
@@ -60,31 +64,37 @@ rustPlatform.buildRustPackage (finalAttrs: {
     libxi
     vulkan-loader
     libGL # libEGL fallback when Vulkan is unavailable
+    # rfd's xdg-portal backend dlopens libdbus-1.so.3 to talk to xdg-desktop-portal. If it
+    # isn't found, every Open/Save/Export dialog silently fails to appear.
+    dbus
   ];
 
   # The test suite includes GPU/UI snapshot tests (egui_kittest) and corpus tests that
   # download PSD files, none of which work in the sandbox.
   doCheck = false;
 
-postInstall = ''
-  install -Dm644 packaging/linux/ai.storyteller.photocraft.desktop \
-    $out/share/applications/ai.storyteller.photocraft.desktop
-  install -Dm644 packaging/linux/ai.storyteller.photocraft.mime.xml \
-    $out/share/mime/packages/ai.storyteller.photocraft.xml
-
-  mkdir -p $out/share/metainfo
-  substitute packaging/linux/ai.storyteller.photocraft.metainfo.xml.in \
-    $out/share/metainfo/ai.storyteller.photocraft.metainfo.xml \
-    --subst-var-by VERSION "${lib.head (lib.splitString "-" finalAttrs.version)}" \
-    --subst-var-by DATE "2026-10-06"
-
-  mkdir -p $out/share/icons
-  cp -r assets/app-icon/hicolor $out/share/icons/
-'';
-
+  postInstall = ''
+    install -Dm644 packaging/linux/ai.storyteller.photocraft.desktop \
+      $out/share/applications/ai.storyteller.photocraft.desktop
+    install -Dm644 packaging/linux/ai.storyteller.photocraft.mime.xml \
+      $out/share/mime/packages/ai.storyteller.photocraft.xml
+    mkdir -p $out/share/metainfo
+    substitute packaging/linux/ai.storyteller.photocraft.metainfo.xml.in \
+      $out/share/metainfo/ai.storyteller.photocraft.metainfo.xml \
+      --subst-var-by VERSION "${workspaceVersion}" \
+      --subst-var-by DATE "${date}"
+    mkdir -p $out/share/icons
+    cp -r assets/app-icon/hicolor $out/share/icons/
+  '';
 
   postFixup = lib.optionalString stdenv.hostPlatform.isLinux ''
     patchelf --add-rpath ${lib.makeLibraryPath finalAttrs.buildInputs} $out/bin/photocraft
+
+    # The app's start-up check looks for its runtime libraries via ldconfig and LD_LIBRARY_PATH,
+    # neither of which exists on NixOS (the libraries are in the RPATH), so it prints a false
+    # "could not find these libraries" warning. Skip it rather than leak LD_LIBRARY_PATH into
+    # child processes.
+    wrapProgram $out/bin/photocraft --set PHOTOCRAFT_SKIP_LIB_CHECK 1
   '';
 
   meta = {

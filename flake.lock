@@ -16,9 +16,26 @@
         "type": "github"
       }
     },
+    "photocraft-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791327950,
+        "narHash": "sha256-4uIESy5QkwPIzuXHT0mifLuvCDz4dKGyUIsT58WCRSE=",
+        "owner": "openhausfun",
+        "repo": "photocraft",
+        "rev": "67808f5abb3ce1a71b10d04b889c6eac4db43ba7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "openhausfun",
+        "repo": "photocraft",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "photocraft-src": "photocraft-src"
       }
     }
   },

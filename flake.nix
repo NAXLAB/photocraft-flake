@@ -1,10 +1,19 @@
 {
   description = "PhotoCraft: a native, open-source image editor written in Rust";
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+
+    # Upstream source. `flake = false` because the repo has no flake.nix of its own.
+    # Pinned in flake.lock; `nix flake update photocraft-src` moves it to the latest commit.
+    photocraft-src = {
+      url = "github:openhausfun/photocraft";
+      flake = false;
+    };
+  };
 
   outputs =
-    { self, nixpkgs }:
+    { self, nixpkgs, photocraft-src }:
     let
       lib = nixpkgs.lib;
       systems = [
@@ -12,11 +21,12 @@
         "aarch64-linux"
       ];
       forAllSystems = f: lib.genAttrs systems (system: f system nixpkgs.legacyPackages.${system});
+      mkPackage = pkgs: pkgs.callPackage ./package.nix { src = photocraft-src; };
     in
     {
       packages = forAllSystems (
         _system: pkgs: rec {
-          photocraft = pkgs.callPackage ./package.nix { };
+          photocraft = mkPackage pkgs;
           default = photocraft;
         }
       );
@@ -49,10 +59,9 @@
         }
       );
 
-      # For `nixpkgs.overlays = [ photocraft.overlays.default ];` in a NixOS or
-      # home-manager configuration, giving `pkgs.photocraft`.
+      # For `nixpkgs.overlays = [ photocraft.overlays.default ];`, giving `pkgs.photocraft`.
       overlays.default = final: _prev: {
-        photocraft = final.callPackage ./package.nix { };
+        photocraft = mkPackage final;
       };
     };
 }
