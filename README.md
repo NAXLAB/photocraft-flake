@@ -11,8 +11,9 @@ developed upstream.
 Run it without installing:
 
 ```sh
-nix run github:NAXLAB/photocraft-flake        # the desktop app
-nix run github:NAXLAB/photocraft-flake#cli    # photocraft-cli
+nix run github:NAXLAB/photocraft-flake                     # the desktop app
+nix run github:NAXLAB/photocraft-flake#photocraft-xwayland # the desktop app, forced to XWayland
+nix run github:NAXLAB/photocraft-flake#cli                 # photocraft-cli
 ```
 
 ### Install on NixOS
@@ -46,10 +47,28 @@ Open, Save and Export dialogs go through the XDG desktop portal, so you need a p
 that provides a file chooser (for example `xdg-desktop-portal-gnome` or
 `xdg-desktop-portal-gtk`) and `hardware.graphics.enable = true` for Vulkan/EGL.
 
+### Drag-and-drop and pen tablets on Wayland
+
+PhotoCraft has no native drag-and-drop on Wayland yet, and its pen-tablet support (pressure and
+tilt) is X11-only. The `photocraft-x11` package runs the app under XWayland even in a Wayland
+session (it unsets `WAYLAND_DISPLAY`), which enables both:
+
+```nix
+environment.systemPackages = [
+  inputs.photocraft.packages.${pkgs.stdenv.hostPlatform.system}.photocraft-xwayland
+];
+```
+
+Or, with the overlay: `pkgs.photocraft.override { x11 = true; }`.
+
+This needs an X server in the session, so `DISPLAY` must be set. Under niri, install
+`xwayland-satellite`. XWayland apps can look slightly blurry on HiDPI or fractionally scaled
+outputs. On Wayland, File > Open, or pasting an image with Ctrl+V, still works.
 
 ## What is in the package
 
-- `photocraft` and `photocraft-cli` binaries.
+- `photocraft` and `photocraft-cli` binaries, built with upstream's `heif` feature (HEIC/HEIF
+  decoding, pure Rust) as in its official Linux builds.
 - Desktop entry, MIME definitions, AppStream metadata and icons from upstream's
   `packaging/linux`.
 - Runtime libraries (xkbcommon, Wayland, X11, Vulkan, EGL, libdbus) added to the binary's
@@ -62,6 +81,8 @@ that provides a file chooser (for example `xdg-desktop-portal-gnome` or
 
 - The optional [craft-fonts](https://github.com/storytold/craft-fonts) input (bundled Japanese
   fonts) is not included; the app falls back to system CJK fonts.
+- On Wayland, drag-and-drop and pen-tablet input are unavailable; use the `photocraft-x11`
+  package (see above).
 - Built and used on x86_64-linux. aarch64-linux is listed in the flake but untested.
 
 ## License
