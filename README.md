@@ -3,8 +3,7 @@
 A Nix flake that packages [PhotoCraft](https://github.com/storytold/photocraft), a native,
 open-source image editor written in Rust (layers, masks, adjustment layers, PSD support).
 
-The flake tracks upstream's default branch through a flake input, so updating to the latest
-version is one command. This repository contains only the packaging; PhotoCraft itself is
+The flake tracks upstream's default branch through a flake input. PhotoCraft itself is
 developed upstream.
 
 ## Usage
@@ -64,12 +63,6 @@ that provides a file chooser (for example `xdg-desktop-portal-gnome` or
 - The optional [craft-fonts](https://github.com/storytold/craft-fonts) input (bundled Japanese
   fonts) is not included; the app falls back to system CJK fonts.
 - Built and used on x86_64-linux. aarch64-linux is listed in the flake but untested.
-
-## Development
-
-```sh
-nix develop    # Rust tooling plus the runtime libraries on LD_LIBRARY_PATH
-```
 
 ## License
 

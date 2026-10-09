@@ -14,6 +14,11 @@
   vulkan-loader,
   libGL,
   dbus,
+  # Run under XWayland even in a Wayland session. PhotoCraft has no native drag-and-drop on
+  # Wayland yet, and its pen-tablet support (pressure/tilt) is X11-only. Needs an X server in the
+  # session (DISPLAY set), e.g. xwayland-satellite under niri.
+  x11 ? false,
+  # The upstream source tree, supplied by the flake (the `photocraft-src` input).
   src,
 }:
 
@@ -76,22 +81,17 @@ rustPlatform.buildRustPackage (finalAttrs: {
   doCheck = false;
 
   postInstall = ''
-
     install -Dm644 packaging/linux/ai.storyteller.photocraft.desktop \
       $out/share/applications/ai.storyteller.photocraft.desktop
-
     install -Dm644 packaging/linux/ai.storyteller.photocraft.mime.xml \
       $out/share/mime/packages/ai.storyteller.photocraft.xml
-
     mkdir -p $out/share/metainfo
     substitute packaging/linux/ai.storyteller.photocraft.metainfo.xml.in \
       $out/share/metainfo/ai.storyteller.photocraft.metainfo.xml \
       --subst-var-by VERSION "${workspaceVersion}" \
       --subst-var-by DATE "${date}"
-
     mkdir -p $out/share/icons
     cp -r assets/app-icon/hicolor $out/share/icons/
-    
   '';
 
   postFixup = lib.optionalString stdenv.hostPlatform.isLinux ''
@@ -101,7 +101,8 @@ rustPlatform.buildRustPackage (finalAttrs: {
     # neither of which exists on NixOS (the libraries are in the RPATH), so it prints a false
     # "could not find these libraries" warning. Skip it rather than leak LD_LIBRARY_PATH into
     # child processes.
-    wrapProgram $out/bin/photocraft --set PHOTOCRAFT_SKIP_LIB_CHECK 1
+    wrapProgram $out/bin/photocraft \
+      --set PHOTOCRAFT_SKIP_LIB_CHECK 1${lib.optionalString x11 " \\\n      --unset WAYLAND_DISPLAY"}
   '';
 
   meta = {

@@ -27,6 +27,8 @@
       packages = forAllSystems (
         _system: pkgs: rec {
           photocraft = mkPackage pkgs;
+          # Forces XWayland: enables drag-and-drop and pen-tablet input on Wayland sessions.
+          photocraft-xwayland = photocraft.override { x11 = true; };
           default = photocraft;
         }
       );
