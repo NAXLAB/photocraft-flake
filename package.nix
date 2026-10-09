@@ -14,7 +14,6 @@
   vulkan-loader,
   libGL,
   dbus,
-  # The upstream source tree, supplied by the flake (the `photocraft-src` input).
   src,
 }:
 
@@ -27,7 +26,7 @@ let
 in
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "photocraft";
-  # Upstream publishes no tags on this repo, so the commit date marks the snapshot.
+  # The flake input follows upstream's default branch, so the commit date marks the snapshot.
   version = "${workspaceVersion}-unstable-${date}";
 
   inherit src;
@@ -36,13 +35,16 @@ rustPlatform.buildRustPackage (finalAttrs: {
   # adds a git dependency, Nix will error and ask for an `outputHashes` entry for it.
   cargoLock.lockFile = "${src}/Cargo.lock";
 
-  # The workspace has 24 crates plus xtask and a wasm app; build only the two binaries
-  # upstream ships on Linux (see packaging/linux/package.sh).
+  # The workspace has many crates plus xtask and a wasm app; build only the two binaries
+  # upstream ships on Linux, with the same flags as its official builds
+  # (see packaging/linux/package.sh). `heif` enables HEIC/HEIF decoding, which is pure Rust.
   cargoBuildFlags = [
     "--package"
     "photocraft"
     "--package"
     "photocraft-cli"
+    "--features"
+    "heif"
   ];
 
   nativeBuildInputs = [
@@ -74,17 +76,22 @@ rustPlatform.buildRustPackage (finalAttrs: {
   doCheck = false;
 
   postInstall = ''
+
     install -Dm644 packaging/linux/ai.storyteller.photocraft.desktop \
       $out/share/applications/ai.storyteller.photocraft.desktop
+
     install -Dm644 packaging/linux/ai.storyteller.photocraft.mime.xml \
       $out/share/mime/packages/ai.storyteller.photocraft.xml
+
     mkdir -p $out/share/metainfo
     substitute packaging/linux/ai.storyteller.photocraft.metainfo.xml.in \
       $out/share/metainfo/ai.storyteller.photocraft.metainfo.xml \
       --subst-var-by VERSION "${workspaceVersion}" \
       --subst-var-by DATE "${date}"
+
     mkdir -p $out/share/icons
     cp -r assets/app-icon/hicolor $out/share/icons/
+    
   '';
 
   postFixup = lib.optionalString stdenv.hostPlatform.isLinux ''
@@ -99,7 +106,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
 
   meta = {
     description = "Native, open-source image editor with layers, masks and PSD support, written in Rust";
-    homepage = "https://github.com/openhausfun/photocraft";
+    homepage = "https://github.com/storytold/photocraft";
     license = with lib.licenses; [
       mit
       asl20

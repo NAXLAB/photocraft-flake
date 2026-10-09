@@ -7,7 +7,7 @@
     # Upstream source. `flake = false` because the repo has no flake.nix of its own.
     # Pinned in flake.lock; `nix flake update photocraft-src` moves it to the latest commit.
     photocraft-src = {
-      url = "github:openhausfun/photocraft";
+      url = "github:storytold/photocraft";
       flake = false;
     };
   };
