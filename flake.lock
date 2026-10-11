@@ -19,11 +19,11 @@
     "photocraft-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1791675168,
-        "narHash": "sha256-jNrcP7ZFskVFv7QrIAslw47EDajpKGrvDxBCJJZ6Q2w=",
+        "lastModified": 1791682590,
+        "narHash": "sha256-XyRDSkGAw1W9kF61nujHkgIR7TkTjrQbbcu+tSxWjXU=",
         "owner": "storytold",
         "repo": "photocraft",
-        "rev": "953390a36ef59c6ca04c5850b5b5d9d0dd9e625a",
+        "rev": "79261615956ab21334e49ca1d384390272e647da",
         "type": "github"
       },
       "original": {
