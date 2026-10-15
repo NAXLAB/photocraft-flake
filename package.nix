@@ -36,9 +36,11 @@ rustPlatform.buildRustPackage (finalAttrs: {
 
   inherit src;
 
-  # While Cargo.lock has only crates.io sources, no hashes ever need updating. If upstream
-  # adds a git dependency, Nix will error and ask for an `outputHashes` entry for it.
-  cargoLock.lockFile = "${src}/Cargo.lock";
+
+  cargoLock = {
+    lockFile = "${src}/Cargo.lock";
+    allowBuiltinFetchGit = true;
+  };
 
   # The workspace has many crates plus xtask and a wasm app; build only the two binaries
   # upstream ships on Linux, with the same flags as its official builds
