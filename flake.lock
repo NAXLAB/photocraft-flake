@@ -2,11 +2,11 @@
   "nodes": {
     "nixpkgs": {
       "locked": {
-        "lastModified": 1791956154,
-        "narHash": "sha256-jBYGPi4udQ9uo4KQp9m2J0546nJVQitG15gvZSaVVAs=",
+        "lastModified": 1792773339,
+        "narHash": "sha256-rZLrzrC6i+jnTAlvPZHogKDulY7WWDEv9hJeHieO7Zw=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "55bfb4d7437bd4e09ab7cba58a43bd68eb310044",
+        "rev": "3ec636362e1816bc2f0888fa0fa2c69f1bc9e504",
         "type": "github"
       },
       "original": {
@@ -19,11 +19,11 @@
     "photocraft-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1792260860,
-        "narHash": "sha256-Gu+IJtJVXtfHmQXe6tF0LdfvqOpX3mxj9kKjs7rOYMI=",
+        "lastModified": 1792878976,
+        "narHash": "sha256-lGPJ9nlWSe4B/hdvJIYWiavomm6wobQP/DVWTrFD6NQ=",
         "owner": "storytold",
         "repo": "photocraft",
-        "rev": "06ad0d5c9561d7499dc6f25ce8041b60db2ea1d3",
+        "rev": "486afd82cce99255e999224bcfe28de00fd766aa",
         "type": "github"
       },
       "original": {
